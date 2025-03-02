@@ -1,68 +1,62 @@
 import socket
-import threading
 import json
+import threading
 from protocols import Protocol
 
 class Client:
-    def __init__(self , host  = socket.gethostbyname(socket.gethostname()), port = 5555):
-        self.host = host
-        self.port = port
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.connect((host, port))
-        self.nickname = None
-
-        self.closed = False
+    def __init__(self):
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client.connect((socket.gethostbyname(socket.gethostname()), 5555))
         self.started = False
-        self.opponent = None
-        self.player_move = {}
-        self.opponent_moved = {}
-        
-        self.info = ''
+        self.closed = False
         self.receive_ = False
+        self.info = None
+        self.opponent_moved = {}
 
     def start(self):
-        receive_thread = threading.Thread(target=self.receive)  # Change self.start to self.receive
-        receive_thread.start()
+        self.receive_ = True
+        thread = threading.Thread(target=self.receive)
+        thread.start()
 
-    def send(self , request , data):
-        data = {
-            'type': request,
+    def send(self, r_type, data):
+        message = {
+            'type': r_type,
             'data': data
         }
+        message_str = json.dumps(message)
         try:
-            self.server.send(json.dumps(data).encode('ascii'))
-        except:
-            pass
+            self.client.send(message_str.encode('ascii'))
+        except ConnectionAbortedError as e:
+            print(f"Error sending data: {e}")
+        except Exception as e:
+            print(f"Unexpected error sending data: {e}")
 
     def receive(self):
-        while not self.closed:
-            self.receive_ = True
+        while self.receive_:
             try:
-                data = self.server.recv(2048).decode('ascii')
-                message = json.loads(data)
-                self.handle_response(message)
-            except:
-                pass
+                data = self.client.recv(2048).decode('ascii')
+                if data:
+                    message = json.loads(data)
+                    self.handle_message(message)
+                else:
+                    print("Received empty data")
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON data: {e}")
+            except Exception as e:
+                print(f"Error receiving data: {e}")
+                self.receive_ = False
+
+    def handle_message(self, message):
+        r_type = message['type']
+        data = message['data']
+
+        if r_type == Protocol.Responce.Start:
+            self.started = True
+        elif r_type == Protocol.Responce.Opponent_moved:
+            self.opponent_moved = data
+        elif r_type == Protocol.Responce.Opponent_left:
+            self.started = False
 
     def close(self):
         self.closed = True
-        self.server.close()
-
-    def handle_response(self, response):
-        r_type = response['type']
-        data = response['data']
-        self.info = r_type
-        if r_type == Protocol.Responce.Opponent:
-            self.opponent = data
-        
-        elif r_type == Protocol.Responce.Start:
-            self.started = True  
-            
-        elif r_type == Protocol.Responce.Opponent_left:
-            self.close()
-
-        elif r_type == Protocol.Responce.Opponent_moved:
-            self.opponent_moved = data
-
-    def opponent_move(self):
-        pass
+        self.client.close()

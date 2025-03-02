@@ -3,6 +3,7 @@ from client import Client
 from protocols import Protocol
 from player import Player
 from tilemap import TileSheet
+import time
 
 class Game:
     def __init__(self , client):
@@ -33,7 +34,7 @@ class Game:
         self.tiles = TileSheet(self, 20)
 
     def run(self):
-
+        time.sleep(2)
         while not self.client.closed:
             self.clock.tick(60)
             pygame.display.flip()
@@ -75,10 +76,6 @@ class Game:
                     self.text += event.unicode
         else:
             if event.type == pygame.KEYDOWN:
-                self.data = {
-                    'pos' : self.player.pos
-                }
-                self.client.send(Protocol.Request.Move, self.data)
                 if event.key == pygame.K_d:
                     self.movement[0] = True
                 if event.key == pygame.K_a:
@@ -123,9 +120,15 @@ class Game:
         self.screen.blit(text_surface, (self.screen.get_width() / 2 - text_surface.get_width() / 2, self.screen.get_height() / 2))
 
     def run_game(self):
-        if 'pos' in self.client.opponent_moved:
-            self.opponent.pos = tuple(self.client.opponent_moved['pos'])
-            print(self.opponent.pos)
+        
+        if self.client.started:
+            self.data = {
+                        'pos' : self.player.pos
+                    }
+            
+            self.client.send(Protocol.Request.Move, self.data)
+            if 'pos' in self.client.opponent_moved:
+                self.opponent.pos = tuple(self.client.opponent_moved['pos'])
         self.player.update((self.movement[0] - self.movement[1], 0), self.tiles)
         self.player.Render()
         self.opponent.Render()

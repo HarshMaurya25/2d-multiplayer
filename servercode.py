@@ -25,28 +25,31 @@ class Server:
             thread = threading.Thread(target=self.handle , args=(client, ))
             thread.start()
 
-    def handle(self,client):
+    def handle(self, client):
         self.handle_connect(client)
         self.wait_for_room(client)
 
         while True:
             try:
                 data = client.recv(2048).decode('ascii')
+                print(f"Received data: {data}")  # Add this line for debugging
 
                 if not data:
+                    print("Received empty data")
                     break
 
                 else:
                     message = json.loads(data)
                     self.handle_message(message , client)
             
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON data: {e}")
             except Exception as e:
                 print(f"Error receiving data: {e}")  # Add this line for debugging
                 break
 
         self.send_to_opponent(Protocol.Responce.Opponent_left, None, client)
         self.disconnect(client)
-
 
     def handle_connect(self , client):
         while True:
@@ -154,3 +157,7 @@ class Server:
             del self.rooms[opponent]
 
         client.close()
+
+if __name__ == "__main__":
+    server = Server()
+    server.receive()
