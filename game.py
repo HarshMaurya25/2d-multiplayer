@@ -136,8 +136,8 @@ class Game:
             }
             self.client.send(Protocol.Request.Move, self.data)
 
-        pos = self.client.opponent_moved.get('pos', (0, 0))  # Ensure pos is a tuple with two values
-        list= self.client.opponent_moved.get('bullet', [])  # Ensure pos is a tuple with two values
+        pos = self.client.opponent_moved.get('pos', (0, 0))
+        list= self.client.opponent_moved.get('bullet', []) 
 
         try:
             Bullet(pos , (10 ,10) , list[0] , self.opponent_bullet)
