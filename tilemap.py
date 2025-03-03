@@ -63,3 +63,21 @@ class TileSheet:
 
         return rect
 
+    def Bulletaround(self , pos ):
+        tilearound = []
+        loc = (int((pos[0]) // self.tilesize) , int((pos[1]) // self.tilesize))
+        for position in surround:
+            check = str(loc[0] + position[0]) + ';' + str(loc[1] + position[1])
+            if check in self.tile_map:
+                tilearound.append(self.tile_map[check])
+        
+        return tilearound
+    
+    def Bullet_physcicsaround(self , pos):
+
+        rect = []
+        for tile in self.Bulletaround(pos ):
+            rect.append(pygame.Rect((tile['pos'][0]) * self.tilesize, tile['pos'][1] * self.tilesize , self.tilesize , self.tilesize))
+
+
+        return rect

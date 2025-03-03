@@ -1,4 +1,5 @@
 import pygame
+import math
 
 class Player:
     def __init__(self, game, pos, size, colour):
@@ -9,6 +10,9 @@ class Player:
         self.velocity = [0, 0]
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
         self.jumps = 0
+        self.image = pygame.image.load('aim.png').convert_alpha()
+        self.image.set_colorkey((255, 255, 255))
+        self.image = pygame.transform.scale(self.image, (25 ,25))
 
     def rects(self ):
         return pygame.Rect(self.pos[0] , self.pos[1], self.size[0], self.size[1])
@@ -50,6 +54,23 @@ class Player:
 
     def Render(self ):
         pygame.draw.rect(self.game.screen, self.colour, self.rects())
+
+    def Renderopp(self , pos):
+
+        rect = self.rects()
+        rect.center = pos
+        pygame.draw.rect(self.game.screen, self.colour, rect)
+
+
+    def aim(self):
+        mpos = pygame.mouse.get_pos()
+        self.game.screen.blit(self.image, mpos)
+    
+    def angle(self):
+        mpos = pygame.mouse.get_pos()
+        x_diff, y_diff = mpos[0] - self.pos[0], mpos[1] - self.pos[1]
+        angle = math.degrees(math.atan2(-y_diff, x_diff))
+        return angle
 
     def perform_jump(self):
         if self.jumps < 2:

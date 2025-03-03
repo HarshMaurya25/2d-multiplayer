@@ -11,7 +11,8 @@ class Client:
         self.closed = False
         self.receive_ = False
         self.info = None
-        self.opponent_moved = {}
+        self.opponent_moved = [0,0]
+        self.bullet = None
 
     def start(self):
         self.receive_ = True
@@ -19,6 +20,10 @@ class Client:
         thread.start()
 
     def send(self, r_type, data):
+        if self.closed:
+            print("Cannot send data, socket is closed")
+            return
+
         message = {
             'type': r_type,
             'data': data
@@ -28,13 +33,16 @@ class Client:
             self.client.send(message_str.encode('ascii'))
         except ConnectionAbortedError as e:
             print(f"Error sending data: {e}")
+        except OSError as e:
+            print(f"OS error sending data: {e}")
         except Exception as e:
             print(f"Unexpected error sending data: {e}")
 
     def receive(self):
         while self.receive_:
             try:
-                data = self.client.recv(2048).decode('ascii')
+                
+                data = self.client.recv(2048 * 4).decode('ascii')
                 if data:
                     message = json.loads(data)
                     self.handle_message(message)
@@ -53,7 +61,8 @@ class Client:
         if r_type == Protocol.Responce.Start:
             self.started = True
         elif r_type == Protocol.Responce.Opponent_moved:
-            self.opponent_moved = data
+            self.opponent_moved = data['pos']
+            self.bullet = data['bullet']
         elif r_type == Protocol.Responce.Opponent_left:
             self.started = False
 

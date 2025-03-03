@@ -13,6 +13,7 @@ class Server:
         self.server.listen()
         print("Server Ready")
 
+        self.clients = []
         self.player = {}
         self.opponent = {}
         self.rooms = {}
@@ -22,6 +23,7 @@ class Server:
         while True:
             client, addr = self.server.accept()
             print(f"Connected with {addr}")
+            self.clients.append(client)
             thread = threading.Thread(target=self.handle , args=(client, ))
             thread.start()
 
@@ -31,7 +33,7 @@ class Server:
 
         while True:
             try:
-                data = client.recv(2048).decode('ascii')
+                data = client.recv(2048* 4* 4).decode('ascii')
                 print(f"Received data: {data}")  # Add this line for debugging
 
                 if not data:
@@ -55,7 +57,7 @@ class Server:
         while True:
             self.send(Protocol.Request.Nickname , None , client)
             try:
-                message_ = client.recv(2048).decode('ascii')
+                message_ = client.recv(2048* 4).decode('ascii')
                 print(message_)
                 message = json.loads(message_)
             except socket.error as e:
@@ -86,7 +88,12 @@ class Server:
         self.opponent[client] = self.waiting_for_player
         self.opponent[self.waiting_for_player] = client
 
-        self.send(Protocol.Responce.Opponent , self.player[client] , self.waiting_for_player)
+        try:
+            self.send(Protocol.Responce.Opponent , self.player[client] , self.waiting_for_player)
+        except OSError as e:
+            print(f"Error sending opponent data: {e}")
+            self.remove_client(client)
+
         self.send(Protocol.Responce.Opponent , self.player[self.waiting_for_player] , client)
 
         print("Sending start message to both players") 
@@ -128,9 +135,9 @@ class Server:
         try:
             client.send(json.dumps(message).encode('ascii'))
         
-        except ConnectionError:
-            print(f"Connection with {client} was reset.")
-            self.disconnect(client)
+        except OSError as e:
+            print(f"Error sending message to client: {e}")
+            self.remove_client(client)
 
     def send_to_opponent(self ,r_type ,data ,  client):
         opponent = self.opponent.get(client)
@@ -156,6 +163,13 @@ class Server:
         if opponent in self.rooms:
             del self.rooms[opponent]
 
+        self.remove_client(client)
+
+    def remove_client(self, client):
+        if client in self.clients:
+            self.clients.remove(client)
+        if client in self.player:
+            del self.player[client]
         client.close()
 
 if __name__ == "__main__":

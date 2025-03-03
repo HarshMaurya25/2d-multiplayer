@@ -33,6 +33,8 @@ class Game:
         self.tiles = TileSheet(self, 20)
         self.bullet_g = pygame.sprite.Group()
         self.left = False
+        self.shoot = 0
+        pygame.mouse.set_visible(False)
 
     def run(self):
         while True:
@@ -49,6 +51,9 @@ class Game:
             self.draw()
 
     def handle_event(self, event):
+        if self.shoot >+ 0:
+            self.shoot -= 1
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_d:
                 self.movement[0] = True
@@ -59,8 +64,6 @@ class Game:
 
             if event.key == pygame.K_SPACE:
                 self.player.perform_jump()
-            if event.key == pygame.K_RETURN:
-                Bullet(self.player.rects().center, (10,5), self.bullet_g)
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_d:
@@ -68,12 +71,14 @@ class Game:
             if event.key == pygame.K_a:
                 self.movement[1] = False
 
+        if event.type == pygame.MOUSEBUTTONDOWN and self.shoot == 0:
+            if event.button == 1:
+                self.shoot = 2
+                Bullet(self.player.rects().center, (10, 5), self.player.angle() , self.bullet_g )
+
     def draw(self):
         self.screen.fill((200, 200, 200))
-        if False:
-            pass
-        else:
-            self.run_game()
+        self.run_game()
 
     def draw_waiting(self):
         text = 'waiting for players'
@@ -82,11 +87,13 @@ class Game:
 
     def run_game(self):
         self.player.update((self.movement[0] - self.movement[1], 0), self.tiles)
-        self.bullet_g.update(self.left)
+        self.bullet_g.update(self.tiles)
         self.bullet_g.draw(self.screen)
         self.player.Render()
         self.opponent.Render()
         self.tiles.render()
+        self.player.aim()
+        self.player.angle()
 
 if __name__ == "__main__":
     game = Game()
