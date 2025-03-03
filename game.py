@@ -34,9 +34,9 @@ class Game:
         self.bullet_g = pygame.sprite.Group()
         self.opponent_bullet = pygame.sprite.Group()
         self.data = {
-            'pos': self.player.pos,
-            'bullet': []
+            'pos': self.player.pos
         }
+        self.bullet_pos = []
 
     def run(self):
         while not self.client.closed:
@@ -96,7 +96,9 @@ class Game:
             if event.type == pygame.MOUSEBUTTONDOWN and self.shoot == 0 and self.client.started:
                 if event.button == 1:
                     self.shoot = 2
-                    Bullet(self.player.rects().center, (10, 10), self.player.angle(), self.bullet_g)
+                    angle = self.player.angle()
+                    Bullet(self.player.rects().center, (10, 10), angle, self.bullet_g)
+                    self.bullet_pos.append(angle)
 
     def draw(self):
         self.screen.fill((200, 200, 200))
@@ -127,33 +129,29 @@ class Game:
         self.screen.blit(text_surface, (self.screen.get_width() / 2 - text_surface.get_width() / 2, self.screen.get_height() / 2))
 
     def run_game(self):
-        length = []
-        pos = (0, 0)
         if self.client.started:
-            for bullet in self.bullet_g:
-                length.append([bullet.rect.x, bullet.rect.y])
             self.data = {
-                'pos': self.player.pos,
-                'bullet': length
+                'pos': (self.player.pos[0], self.player.pos[1]),
+                'bullet': self.bullet_pos
             }
-            if 'bullet' in self.client.opponent_moved:
-                self.opponent_bullet.empty()
-                for bullet_pos in self.client.opponent_moved['bullet']:
-                    oppBullet((bullet_pos[0], bullet_pos[1]), (10, 10), self.opponent_bullet)
             self.client.send(Protocol.Request.Move, self.data)
 
-        pos = self.client.opponent_moved
-        print(type(pos))
+        pos = self.client.opponent_moved.get('pos', (0, 0))  # Ensure pos is a tuple with two values
+        list= self.client.opponent_moved.get('bullet', [])  # Ensure pos is a tuple with two values
 
+        try:
+            Bullet(pos , (10 ,10) , list[0] , self.opponent_bullet)
+        except:
+            pass
         self.player.update((self.movement[0] - self.movement[1], 0), self.tiles)
         self.player.Render()
-        print(pos)
         self.opponent.Renderopp(pos)
         self.tiles.render()
         self.bullet_g.update(self.tiles)
         self.bullet_g.draw(self.screen)
         self.opponent_bullet.update(self.tiles)
         self.opponent_bullet.draw(self.screen)
+        self.bullet_pos = []
 
 if __name__ == "__main__":
     game = Game(Client())

@@ -58,7 +58,7 @@ class Player:
     def Renderopp(self , pos):
 
         rect = self.rects()
-        rect.center = pos
+        rect.x , rect.y = pos
         pygame.draw.rect(self.game.screen, self.colour, rect)
 
 

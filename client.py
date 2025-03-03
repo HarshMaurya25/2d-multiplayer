@@ -11,7 +11,10 @@ class Client:
         self.closed = False
         self.receive_ = False
         self.info = None
-        self.opponent_moved = [0,0]
+        self.opponent_moved = {
+            'pos' : [0,0], 
+            'bullet' : []
+        }
         self.bullet = None
 
     def start(self):
@@ -61,8 +64,8 @@ class Client:
         if r_type == Protocol.Responce.Start:
             self.started = True
         elif r_type == Protocol.Responce.Opponent_moved:
-            self.opponent_moved = data['pos']
-            self.bullet = data['bullet']
+            self.opponent_moved['pos'] = data['pos']
+            self.opponent_moved['bullet'] = data['bullet']
         elif r_type == Protocol.Responce.Opponent_left:
             self.started = False
 
