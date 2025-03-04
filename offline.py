@@ -24,14 +24,17 @@ class Game:
         self.font = pygame.font.SysFont('comicsans', 32)
         self.input_rect = pygame.Rect(100, 100, 400, 60)
 
-        self.player = Player(self, (100, 100), (30, 30), (255, 0, 0))
-        self.opponent = Player(self, (100, 100), (30, 30), (0, 255, 0))
+        self.bullet_g = pygame.sprite.Group()
+        self.opponent_bullet = pygame.sprite.Group()
+        self.player_group = pygame.sprite.Group()
+
+        self.player = Player(self, (100, 100), (30, 30), (255, 0, 0), self.player_group)
+        self.opponent = Player(self, (100, 100), (30, 30), (0, 255, 0) , self.player_group)
         self.data = {
             'pos': self.player.pos
         }
         self.movement = [False, False]
         self.tiles = TileSheet(self, 20)
-        self.bullet_g = pygame.sprite.Group()
         self.left = False
         self.shoot = 0
         pygame.mouse.set_visible(False)
@@ -86,7 +89,7 @@ class Game:
         self.screen.blit(text_surface, (self.screen.get_width() / 2 - text_surface.get_width() / 2, self.screen.get_height() / 2))
 
     def run_game(self):
-        self.player.update((self.movement[0] - self.movement[1], 0), self.tiles)
+        self.player.update((self.movement[0] - self.movement[1], 0), self.tiles  ,self.bullet_g)
         self.bullet_g.update(self.tiles)
         self.bullet_g.draw(self.screen)
         self.player.Render()

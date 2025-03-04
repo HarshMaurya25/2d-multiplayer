@@ -21,31 +21,37 @@ class Game:
         self.color = self.color_inactive
 
         pygame.init()
+        self.bullet_g = pygame.sprite.Group()
+        self.opponent_bullet = pygame.sprite.Group()
+        self.player_group = pygame.sprite.Group()
+
         self.screen = pygame.display.set_mode((800, 600))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont('comicsans', 32)
         self.input_rect = pygame.Rect(100, 100, 400, 60)
 
-        self.player = Player(self, (100, 100), (30, 30), (255, 0, 0))
-        self.opponent = Player(self, (100, 100), (30, 30), (0, 255, 0))
+        self.player = Player(self, (100, 100), (30, 30), (255, 0, 0), self.player_group)
+        self.opponent = Player(self, (100, 100), (30, 30), (0, 255, 0) , self.player_group)
+
         self.movement = [False, False]
         self.tiles = TileSheet(self, 20)
         self.shoot = 0
-        self.bullet_g = pygame.sprite.Group()
-        self.opponent_bullet = pygame.sprite.Group()
+        self.loser = False
+
         self.data = {
             'pos': self.player.pos
         }
         self.bullet_pos = []
+        self.close = False
 
     def run(self):
-        while not self.client.closed:
+        while not self.close:
             self.clock.tick(60)
             pygame.display.flip()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.client.close()
+                    self.close = True
                     pygame.quit()
                     return
                 else:
@@ -104,12 +110,27 @@ class Game:
         self.screen.fill((200, 200, 200))
 
         if not self.logged_in and not self.client.started:
+            self.loser = False
             self.draw_login()
 
         elif not self.client.started:
             self.draw_waiting()
-        else:
+        elif not self.loser or self.client.winner == True:
             self.run_game()
+        elif self.client.opponent_leave == True:
+            pass
+        else:
+            self.endscreen()
+            self.logged_in = False
+
+    def endscreen(self):
+        if self.loser:
+            prompt = 'Loser'
+        else:
+            prompt = 'Winner'
+        prompt_surface = self.font.render(prompt, 1, (0, 0, 0))
+        self.screen.blit(prompt_surface, (100, 50))
+        time.sleep(3)
 
     def draw_login(self):
         prompt = 'Enter the nickname'
@@ -132,26 +153,37 @@ class Game:
         if self.client.started:
             self.data = {
                 'pos': (self.player.pos[0], self.player.pos[1]),
+                'center' : self.player.centers,
                 'bullet': self.bullet_pos
             }
             self.client.send(Protocol.Request.Move, self.data)
 
         pos = self.client.opponent_moved.get('pos', (0, 0))
+        center = self.client.opponent_moved.get('center', (0, 0))
         list= self.client.opponent_moved.get('bullet', []) 
 
         try:
-            Bullet(pos , (10 ,10) , list[0] , self.opponent_bullet)
+            Bullet(center , (10 ,10) , list[0] , self.opponent_bullet)
         except:
             pass
-        self.player.update((self.movement[0] - self.movement[1], 0), self.tiles)
+        self.player.update((self.movement[0] - self.movement[1], 0), self.tiles , self.opponent_bullet)
         self.player.Render()
-        self.opponent.Renderopp(pos)
+        self.player.draw_health_bar()
+
+        self.opponent.Renderopp(pos , self.bullet_g)
+
         self.tiles.render()
         self.bullet_g.update(self.tiles)
         self.bullet_g.draw(self.screen)
         self.opponent_bullet.update(self.tiles)
         self.opponent_bullet.draw(self.screen)
         self.bullet_pos = []
+
+    
+        if self.player.health <= 0:
+            self.loser = True
+            self.client.send(Protocol.Responce.loser , None)
+            
 
 if __name__ == "__main__":
     game = Game(Client())

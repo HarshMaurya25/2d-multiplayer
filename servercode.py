@@ -33,9 +33,8 @@ class Server:
 
         while True:
             try:
-                data = client.recv(2048* 4* 4).decode('ascii')
-                print(f"Received data: {data}")  # Add this line for debugging
-
+                data = client.recv(2048* 4).decode('ascii')
+                print(f"Received data: {data}")  
                 if not data:
                     print("Received empty data")
                     break
@@ -47,7 +46,7 @@ class Server:
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON data: {e}")
             except Exception as e:
-                print(f"Error receiving data: {e}")  # Add this line for debugging
+                print(f"Error receiving data: {e}") 
                 break
 
         self.send_to_opponent(Protocol.Responce.Opponent_left, None, client)
@@ -121,7 +120,11 @@ class Server:
         data = message['data']
         room = self.rooms[client]
 
-        if r_type != Protocol.Request.Move:
+        if r_type == Protocol.Responce.loser:
+            self.send_to_opponent(Protocol.Responce.Opponent_moved , None , client )
+            return
+
+        elif r_type != Protocol.Request.Move:
             return
         
         self.send_to_opponent(Protocol.Responce.Opponent_moved , data , client )

@@ -13,9 +13,12 @@ class Client:
         self.info = None
         self.opponent_moved = {
             'pos' : [0,0], 
-            'bullet' : []
+            'bullet' : [],
+            'center' : [0,0]
         }
         self.bullet = None
+        self.winner = False
+        self.opponent_leave = False
 
     def start(self):
         self.receive_ = True
@@ -48,6 +51,7 @@ class Client:
                 data = self.client.recv(2048 * 4).decode('ascii')
                 if data:
                     message = json.loads(data)
+                    self.info = data
                     self.handle_message(message)
                 else:
                     print("Received empty data")
@@ -62,13 +66,23 @@ class Client:
         data = message['data']
 
         if r_type == Protocol.Responce.Start:
+            self.winner = False
+            self.opponent_leave = False
             self.started = True
         elif r_type == Protocol.Responce.Opponent_moved:
             self.opponent_moved['pos'] = data['pos']
             self.opponent_moved['bullet'] = data['bullet']
+            self.opponent_moved['center'] = data['center']
         elif r_type == Protocol.Responce.Opponent_left:
             self.started = False
+            self.client.close()
+
+        elif r_type == Protocol.Responce.loser:
+            self.winner = True
+            self.started = False
+            self.opponent_leave = True
+            self.client.close()
+
 
     def close(self):
-        self.closed = True
         self.client.close()

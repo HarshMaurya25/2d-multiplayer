@@ -1,8 +1,9 @@
 import pygame
 import math
 
-class Player:
-    def __init__(self, game, pos, size, colour):
+class Player(pygame.sprite.Sprite):
+    def __init__(self, game, pos, size, colour , *groups):
+        super().__init__(*groups)
         self.game = game
         self.pos = list(pos)
         self.size = size
@@ -12,15 +13,23 @@ class Player:
         self.jumps = 0
         self.image = pygame.image.load('aim.png').convert_alpha()
         self.image.set_colorkey((255, 255, 255))
+
+        self.image_play = pygame.Surface(self.size)
+        self.image_play.fill(colour) 
+        self.centers = pos
+
         self.image = pygame.transform.scale(self.image, (25 ,25))
+        self.health = 4
 
     def rects(self ):
         return pygame.Rect(self.pos[0] , self.pos[1], self.size[0], self.size[1])
 
-    def update(self, movement, tilemap):
+    def update(self, movement, tilemap , bullets):
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
         
         frame_movement = (movement[0] + self.velocity[0], movement[1] + self.velocity[1])
+
+        self.centers = self.rects().center
         
         self.pos[0] += frame_movement[0]
         entity_rect = self.rects()
@@ -51,15 +60,15 @@ class Player:
         if self.collisions['down']:
             self.velocity[1] = 0
             self.jumps = 0
-
+        
+        for bullet in bullets:
+            if self.rects().colliderect(bullet.rect):
+                bullet.kill()
+                self.health -= 1
+        
     def Render(self ):
-        pygame.draw.rect(self.game.screen, self.colour, self.rects())
+        self.game.screen.blit(self.image_play , (self.pos))
 
-    def Renderopp(self , pos):
-
-        rect = self.rects()
-        rect.x , rect.y = pos
-        pygame.draw.rect(self.game.screen, self.colour, rect)
 
 
     def aim(self):
@@ -77,3 +86,25 @@ class Player:
             self.velocity[1] -= 5
             self.jumps += 1
 
+    def Renderopp(self , pos ,bullets):
+
+        rect = self.rects()
+        rect.x , rect.y = pos
+        self.game.screen.blit(self.image_play , (rect.x , rect.y))
+
+        for bullet in bullets:
+            if rect.colliderect(bullet.rect):
+                bullet.kill()
+    
+    def draw_health_bar(self):
+        health_bar_width = 40
+        health_bar_height = 5
+        health_bar_x = self.pos[0] + (self.size[0] - health_bar_width) / 2
+        health_bar_y = self.pos[1] - 10
+
+        health_ratio = self.health / 4
+        current_health_bar_width = health_bar_width * health_ratio
+
+        pygame.draw.rect(self.game.screen, (255, 0, 0), (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
+
+        pygame.draw.rect(self.game.screen, (0, 255, 0), (health_bar_x, health_bar_y, current_health_bar_width, health_bar_height))
