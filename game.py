@@ -1,10 +1,10 @@
 import pygame
-from client import Client
-from protocols import Protocol
-from player import Player
-from tilemap import TileSheet
+from util.client import Client
+from util.protocols import Protocol
+from util.player import Player
+from util.tilemap import TileSheet
 import time
-from bullet import Bullet, oppBullet
+from util.bullet import Bullet, oppBullet
 
 class Game:
     def __init__(self, client):
@@ -60,8 +60,6 @@ class Game:
             self.draw()
 
     def handle_event(self, event):
-        if self.client.receive_ and self.client.info:
-            print(self.client.info)
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.input_rect.collidepoint(event.pos):
                 self.color = self.color_active
@@ -116,22 +114,10 @@ class Game:
         elif not self.client.started:
             self.draw_waiting()
         elif not self.loser or self.client.winner == True:
+            pygame.mouse.set_visible(False)
+            self.player.aim()
             self.run_game()
-        elif self.client.opponent_leave == True:
-            pass
-        else:
-            self.endscreen()
-            self.logged_in = False
-
-    def endscreen(self):
-        if self.loser:
-            prompt = 'Loser'
-        else:
-            prompt = 'Winner'
-        prompt_surface = self.font.render(prompt, 1, (0, 0, 0))
-        self.screen.blit(prompt_surface, (100, 50))
-        time.sleep(3)
-
+    
     def draw_login(self):
         prompt = 'Enter the nickname'
         prompt_surface = self.font.render(prompt, 1, (0, 0, 0))
@@ -153,24 +139,24 @@ class Game:
         if self.client.started:
             self.data = {
                 'pos': (self.player.pos[0], self.player.pos[1]),
-                'center' : self.player.centers,
+                'center': self.player.centers,
                 'bullet': self.bullet_pos
             }
             self.client.send(Protocol.Request.Move, self.data)
 
         pos = self.client.opponent_moved.get('pos', (0, 0))
         center = self.client.opponent_moved.get('center', (0, 0))
-        list= self.client.opponent_moved.get('bullet', []) 
+        list = self.client.opponent_moved.get('bullet', [])
 
         try:
-            Bullet(center , (10 ,10) , list[0] , self.opponent_bullet)
+            Bullet(center, (10, 10), list[0], self.opponent_bullet)
         except:
             pass
-        self.player.update((self.movement[0] - self.movement[1], 0), self.tiles , self.opponent_bullet)
+        self.player.update((self.movement[0] - self.movement[1], 0), self.tiles, self.opponent_bullet)
         self.player.Render()
         self.player.draw_health_bar()
 
-        self.opponent.Renderopp(pos , self.bullet_g)
+        self.opponent.Renderopp(pos, self.bullet_g)
 
         self.tiles.render()
         self.bullet_g.update(self.tiles)
@@ -179,11 +165,9 @@ class Game:
         self.opponent_bullet.draw(self.screen)
         self.bullet_pos = []
 
-    
         if self.player.health <= 0:
             self.loser = True
-            self.client.send(Protocol.Responce.loser , None)
-            
+
 
 if __name__ == "__main__":
     game = Game(Client())

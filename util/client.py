@@ -1,7 +1,7 @@
 import socket
 import json
 import threading
-from protocols import Protocol
+from util.protocols import Protocol
 
 class Client:
     def __init__(self):
@@ -75,12 +75,6 @@ class Client:
             self.opponent_moved['center'] = data['center']
         elif r_type == Protocol.Responce.Opponent_left:
             self.started = False
-            self.client.close()
-
-        elif r_type == Protocol.Responce.loser:
-            self.winner = True
-            self.started = False
-            self.opponent_leave = True
             self.client.close()
 
 

@@ -120,11 +120,7 @@ class Server:
         data = message['data']
         room = self.rooms[client]
 
-        if r_type == Protocol.Responce.loser:
-            self.send_to_opponent(Protocol.Responce.Opponent_moved , None , client )
-            return
-
-        elif r_type != Protocol.Request.Move:
+        if r_type != Protocol.Request.Move:
             return
         
         self.send_to_opponent(Protocol.Responce.Opponent_moved , data , client )
@@ -166,6 +162,7 @@ class Server:
         if opponent in self.rooms:
             del self.rooms[opponent]
 
+        print(self.rooms , self.player , self.opponent)
         self.remove_client(client)
 
     def remove_client(self, client):

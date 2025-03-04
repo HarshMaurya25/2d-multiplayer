@@ -11,7 +11,7 @@ class Player(pygame.sprite.Sprite):
         self.velocity = [0, 0]
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
         self.jumps = 0
-        self.image = pygame.image.load('aim.png').convert_alpha()
+        self.image = pygame.image.load('image/aim.png').convert_alpha()
         self.image.set_colorkey((255, 255, 255))
 
         self.image_play = pygame.Surface(self.size)

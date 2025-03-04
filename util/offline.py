@@ -1,10 +1,10 @@
 import pygame
-from client import Client
-from protocols import Protocol
+from util.client import Client
+from util.protocols import Protocol
 from player import Player
-from tilemap import TileSheet
+from util.tilemap import TileSheet
 import time
-from bullet import Bullet
+from util.bullet import Bullet
 
 class Game:
     def __init__(self):
@@ -37,8 +37,7 @@ class Game:
         self.tiles = TileSheet(self, 20)
         self.left = False
         self.shoot = 0
-        pygame.mouse.set_visible(False)
-
+        
     def run(self):
         while True:
             self.clock.tick(60)
