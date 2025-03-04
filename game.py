@@ -5,6 +5,7 @@ from util.player import Player
 from util.tilemap import TileSheet
 import time
 from util.bullet import Bullet, oppBullet
+import json
 
 class Game:
     def __init__(self, client):
@@ -34,7 +35,7 @@ class Game:
         self.opponent = Player(self, (100, 100), (30, 30), (0, 255, 0) , self.player_group)
 
         self.movement = [False, False]
-        self.tiles = TileSheet(self, 20)
+        self.tiles = TileSheet(self, 30)
         self.shoot = 0
         self.loser = False
 
@@ -44,20 +45,47 @@ class Game:
         self.bullet_pos = []
         self.close = False
 
+        self.tiles.load('util/map.json')
+
     def run(self):
-        while not self.close:
+        while not self.client.closed:
             self.clock.tick(60)
             pygame.display.flip()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.close = True
-                    pygame.quit()
-                    return
+                    self.client.closed = True
                 else:
                     self.handle_event(event)
 
             self.draw()
+        
+    def End(self):
+        run = True
+        while run:
+            self.screen.fill((200, 200, 200))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    self.client.client.close()
+
+                if event.type == pygame.KEYDOWN:
+                    run = False
+            if self.client.winner:
+                text = f"{self.client.winner} win the game"
+            else:
+                text = f"opponent left!!!"
+            self.client.winner = None
+            text_surface = self.font.render(text, 1, (0, 0, 0))
+            self.screen.blit(text_surface, (self.screen.get_width() / 2 - text_surface.get_width() / 2, self.screen.get_height() / 2))
+            pygame.display.update()
+            
+        self.client.start()
+        self.done = False
+        self.logged_in = False
+        self.client.closed = False
+        self.run()
+
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -135,6 +163,19 @@ class Game:
         text_surface = self.font.render(text, 1, (0, 0, 0))
         self.screen.blit(text_surface, (self.screen.get_width() / 2 - text_surface.get_width() / 2, self.screen.get_height() / 2))
 
+    def handle_end(self):
+        run = True
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+        if self.client.winner:
+            text = f"{self.client.winner} win the game"
+        else:
+            text = f"opponent left!!!"
+        text_surface = self.font.render(text, 1, (0, 0, 0))
+        self.screen.blit(text_surface, (self.screen.get_width() / 2 - text_surface.get_width() / 2, self.screen.get_height() / 2))
+        pygame.display.update()
+
     def run_game(self):
         if self.client.started:
             self.data = {
@@ -166,7 +207,9 @@ class Game:
         self.bullet_pos = []
 
         if self.player.health <= 0:
-            self.loser = True
+            self.client.send(Protocol.Responce.Winner , None)
+            print('sendd')
+            self.client.close_()
 
 
 if __name__ == "__main__":

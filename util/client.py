@@ -69,14 +69,29 @@ class Client:
             self.winner = False
             self.opponent_leave = False
             self.started = True
+        elif r_type == Protocol.Responce.Winner:
+            self.winner = data
+            self.close_()
         elif r_type == Protocol.Responce.Opponent_moved:
             self.opponent_moved['pos'] = data['pos']
             self.opponent_moved['bullet'] = data['bullet']
             self.opponent_moved['center'] = data['center']
         elif r_type == Protocol.Responce.Opponent_left:
             self.started = False
-            self.client.close()
+            self.close_()
 
 
-    def close(self):
-        self.client.close()
+    def close_(self):
+        self.started = False
+        self.closed = True
+        self.receive_ = False
+        self.info = None
+        self.opponent_moved = {
+            'pos' : [0,0], 
+            'bullet' : [],
+            'center' : [0,0]
+        }
+        self.bullet = None
+        self.opponent_leave = False
+        print("closing")
+        print('done')

@@ -5,7 +5,7 @@ class Protocol:
         Opponent = "protocols.opponent"
         Opponent_left = "protocols.opponent_left"
         Opponent_moved = "protocols.opponent_moved"
-        loser = "loser"
+        Winner = "protocols.winner"
 
     class Request:
         Nickname = "protocols.nickname"
