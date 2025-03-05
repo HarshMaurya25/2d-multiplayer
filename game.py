@@ -94,8 +94,6 @@ class Game:
             else:
                 self.color = self.color_inactive
 
-        if event.type == pygame.KEYUP and self.color == self.color_inactive:
-            return
         if not self.client.started:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
@@ -108,6 +106,8 @@ class Game:
                         self.text = ''
                 else:
                     self.text += event.unicode
+            if event.type == pygame.KEYUP and self.color == self.color_inactive:
+                return
         else:
             if self.shoot > 0:
                 self.shoot -= 1
@@ -143,8 +143,8 @@ class Game:
             self.draw_waiting()
         elif not self.loser or self.client.winner == True:
             pygame.mouse.set_visible(False)
-            self.player.aim()
             self.run_game()
+            self.player.aim()
     
     def draw_login(self):
         prompt = 'Enter the nickname'
@@ -164,14 +164,12 @@ class Game:
         self.screen.blit(text_surface, (self.screen.get_width() / 2 - text_surface.get_width() / 2, self.screen.get_height() / 2))
 
     def handle_end(self):
-        run = True
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
-        if self.client.winner:
-            text = f"{self.client.winner} win the game"
-        else:
-            text = f"opponent left!!!"
+                self.client.closed = True
+                return
+
+        text = f"{self.client.winner} win the game" if self.client.winner else "opponent left!!!"
         text_surface = self.font.render(text, 1, (0, 0, 0))
         self.screen.blit(text_surface, (self.screen.get_width() / 2 - text_surface.get_width() / 2, self.screen.get_height() / 2))
         pygame.display.update()
@@ -208,7 +206,7 @@ class Game:
 
         if self.player.health <= 0:
             self.client.send(Protocol.Responce.Winner , None)
-            print('sendd')
+            print('opponent winner')
             self.client.close_()
 
 

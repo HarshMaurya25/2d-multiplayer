@@ -33,8 +33,7 @@ class Server:
 
         while True:
             try:
-                data = client.recv(2048* 4).decode('ascii')
-                print(f"Received data: {data}")  
+                data = client.recv(2048* 4).decode('ascii') 
                 if not data:
                     print("Received empty data")
                     break
@@ -57,7 +56,7 @@ class Server:
             self.send(Protocol.Request.Nickname , None , client)
             try:
                 message_ = client.recv(2048* 4).decode('ascii')
-                print(message_)
+            
                 message = json.loads(message_)
             except socket.error as e:
                 print('break ' , e)
@@ -119,7 +118,6 @@ class Server:
         r_type = message['type']
         data = message['data']
         room = self.rooms[client]
-        print(r_type, data , room)
 
         if r_type == Protocol.Responce.Winner:
             self.send_to_opponent(Protocol.Responce.Winner , self.opponent[client] , client)
@@ -136,7 +134,6 @@ class Server:
         }
 
         try:
-            print(message)
             client.send(json.dumps(message).encode('ascii'))
         
         except OSError as e:

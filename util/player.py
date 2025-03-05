@@ -8,7 +8,7 @@ class Player(pygame.sprite.Sprite):
         self.pos = list(pos)
         self.size = size
         self.colour = colour
-        self.velocity = [0, 0]
+        self.velocity = [0,0]
         self.collisions = {'up': False, 'down': False, 'right': False, 'left': False}
         self.jumps = 0
         self.image = pygame.image.load('image/aim.png').convert_alpha()
@@ -31,7 +31,7 @@ class Player(pygame.sprite.Sprite):
 
         self.centers = self.rects().center
         
-        self.pos[0] += frame_movement[0]
+        self.pos[0] += frame_movement[0] * 1.6
         entity_rect = self.rects()
         for rect in tilemap.physcicsaround(self.pos, self.size):
             if entity_rect.colliderect(rect):
@@ -60,6 +60,10 @@ class Player(pygame.sprite.Sprite):
         if self.collisions['down']:
             self.velocity[1] = 0
             self.jumps = 0
+
+        if self.collisions['up']:
+            self.velocity[1] = 0
+
         
         for bullet in bullets:
             if self.rects().colliderect(bullet.rect):

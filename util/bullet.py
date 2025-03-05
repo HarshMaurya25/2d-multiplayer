@@ -9,7 +9,7 @@ class Bullet(pygame.sprite.Sprite):
         self.image.fill((0, 0, 0)) 
         self.image = pygame.transform.rotate(self.image , self.angle)
         self.rect = self.image.get_rect(center=pos)
-        self.speed = 15
+        self.speed = 45
         self.initial = pos
 
     def update(self , tile):

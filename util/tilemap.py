@@ -48,7 +48,7 @@ class TileSheet:
         map_data = json.load(f)
         f.close()
         
-        self.tilemap = map_data['tilemap']
+        self.tile_map = map_data['tilemap']
         self.offgrid_tiles = map_data['offgrid']
     def Bullet_physcicsaround(self , pos):
 

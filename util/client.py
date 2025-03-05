@@ -83,7 +83,7 @@ class Client:
 
     def close_(self):
         self.started = False
-        self.closed = True
+        self.closed = True  
         self.receive_ = False
         self.info = None
         self.opponent_moved = {
@@ -93,5 +93,3 @@ class Client:
         }
         self.bullet = None
         self.opponent_leave = False
-        print("closing")
-        print('done')
